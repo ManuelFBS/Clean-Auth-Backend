@@ -4,6 +4,9 @@
     "description": "Backend sencillo basado en Node, Express, Typescript y MySQL, empleando Clean Architecture, todo con fines de aprendizaje y entrenamiento.",
     "main": "index.js",
     "scripts": {
+        "start": "node dist/index.js",
+        "dev": "nodemon src/index.ts",
+        "tsc": "tsc",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "repository": {
