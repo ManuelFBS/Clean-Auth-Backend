@@ -4,5 +4,8 @@ node_modules
 # Enviropment
 .env
 
+# Production
+/dist
+
 # Editor formatters
 .prettierrc
