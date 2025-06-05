@@ -13,43 +13,64 @@ export class UserRepository implements IUserRepository {
     async findByUsername(
         username: string,
     ): Promise<User | null> {
-        const [rows] = (await this.connection.execute(
-            'SELECT * FROM users WHERE username = ?',
-            [username],
-        )) as [any[], any];
+        try {
+            const [rows]: any =
+                await this.connection.execute(
+                    'SELECT * FROM users WHERE username = ?',
+                    [username],
+                );
 
-        if (rows.length === 0) {
-            return null;
+            if (rows.length === 0) {
+                return null;
+            }
+
+            const userData = rows[0];
+            return new User(
+                userData.id,
+                userData.username,
+                userData.password,
+                new Date(userData.created_at),
+                new Date(userData.updated_at),
+            );
+        } catch (error) {
+            console.error(
+                'Error in findByUsername:',
+                error,
+            );
+            throw new Error(
+                'Database error when finding user',
+            );
         }
-
-        const userData = rows[0];
-
-        return new User(
-            userData.id,
-            userData.username,
-            userData.password,
-            userData.created_at,
-            userData.updated_at,
-        );
     }
 
     async save(user: User): Promise<User> {
-        const hashedPassword = await bcrypt.hash(
-            user.password,
-            10,
-        );
+        try {
+            const [result]: any =
+                await this.connection.execute(
+                    'INSERT INTO users (username, password) VALUES (?, ?)',
+                    [user.username, user.password],
+                );
 
-        const [result]: any = await this.connection.execute(
-            'INSERT INTO users (username, password) VALUES (?, ?)',
-            [user.username, hashedPassword],
-        );
+            // Obtener el usuario recién creado para devolverlo con todos los datos
+            const [rows]: any =
+                await this.connection.execute(
+                    'SELECT * FROM users WHERE id = ?',
+                    [result.insertId],
+                );
 
-        return new User(
-            result.insertId,
-            user.username,
-            hashedPassword,
-            new Date(),
-            new Date(),
-        );
+            const userData = rows[0];
+            return new User(
+                userData.id,
+                userData.username,
+                userData.password,
+                new Date(userData.created_at),
+                new Date(userData.updated_at),
+            );
+        } catch (error) {
+            console.error('Error in save:', error);
+            throw new Error(
+                'Database error when saving user',
+            );
+        }
     }
 }
