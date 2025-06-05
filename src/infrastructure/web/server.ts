@@ -32,6 +32,13 @@ export async function createServer() {
 
     //* Rutas públicas...
     app.post(
+        '/register',
+        asyncHandler((req: Request, res: Response) =>
+            authController.register(req, res),
+        ),
+    );
+
+    app.post(
         '/login',
         asyncHandler((req: Request, res: Response) =>
             authController.login(req, res),

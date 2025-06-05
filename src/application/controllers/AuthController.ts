@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { AuthenticateUser } from '../../core/usecases/AuthenticateUser';
 import { RegisterUser } from '../../core/usecases/RegisterUser';
 import { LoginDTO, RegisterDTO } from '../dtos/AuthDTO';
-import { error } from 'console';
 
 export class AuthController {
     constructor(
