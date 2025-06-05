@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import { IUserRepository } from '../interfaces/IUserRepository';
 import { User } from '../entities/User';
+import { UserValidator } from '../validators/UserValidator';
 
 export class RegisterUser {
     constructor(private userRepository: IUserRepository) {}
@@ -9,6 +10,10 @@ export class RegisterUser {
         username: string,
         password: string,
     ): Promise<User> {
+        //* Validaciones...
+        UserValidator.validateUsername(username);
+        UserValidator.validatePassword(password);
+
         const existingUser =
             await this.userRepository.findByUsername(
                 username,
