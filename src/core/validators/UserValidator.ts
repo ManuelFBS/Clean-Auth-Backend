@@ -1,7 +1,11 @@
+import { ValidatorError } from '../errors';
+
 export class UserValidator {
     static validateUsername(username: string): void {
         if (!username)
-            throw new Error('Username is required');
+            throw new ValidatorError(
+                'Username is required',
+            );
 
         if (username.length < 3)
             throw new Error(
