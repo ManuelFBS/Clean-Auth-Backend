@@ -19,17 +19,20 @@ describe('Auth API', () => {
 
     describe('POST /register', () => {
         it('should register a new user', async () => {
+            // Use a unique username to avoid conflicts with previous test runs
+            const uniqueUsername = `testuser_${Date.now()}`;
+            
             const response = await request(app)
                 .post('/register')
                 .send({
-                    username: 'testuser',
+                    username: uniqueUsername,
                     password: 'ValidPass123',
                 });
 
             expect(response.status).toBe(201);
             expect(response.body).toHaveProperty(
                 'username',
-                'testuser',
+                uniqueUsername,
             );
             expect(response.body).not.toHaveProperty(
                 'password',

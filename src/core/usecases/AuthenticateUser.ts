@@ -1,11 +1,13 @@
 import bcrypt from 'bcrypt';
 import jwt, { SignOptions } from 'jsonwebtoken';
+import { injectable, inject } from 'inversify';
 import { IUserRepository } from '../interfaces/IUserRepository';
 import { User } from '../entities/User';
 import { AuthenticationError } from '../errors';
 
+@injectable()
 export class AuthenticateUser {
-    constructor(private userRepository: IUserRepository) {}
+    constructor(@inject('IUserRepository') private userRepository: IUserRepository) {}
 
     async execute(
         username: string,

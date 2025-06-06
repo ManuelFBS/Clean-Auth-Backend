@@ -1,10 +1,12 @@
 import bcrypt from 'bcrypt';
+import { injectable, inject } from 'inversify';
 import { IUserRepository } from '../interfaces/IUserRepository';
 import { User } from '../entities/User';
 import { UserValidator } from '../validators/UserValidator';
 
+@injectable()
 export class RegisterUser {
-    constructor(private userRepository: IUserRepository) {}
+    constructor(@inject('IUserRepository') private userRepository: IUserRepository) {}
 
     async execute(
         username: string,

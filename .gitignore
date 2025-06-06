@@ -9,3 +9,8 @@ node_modules
 
 # Editor formatters
 .prettierrc
+
+# Tests
+logs
+test
+jest.config.js

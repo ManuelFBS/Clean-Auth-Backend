@@ -1,26 +1,18 @@
+import 'reflect-metadata';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { AuthController } from '../../application/controllers/AuthController';
-import { AuthenticateUser } from '../../core/usecases/AuthenticateUser';
-import { RegisterUser } from '../../core/usecases/RegisterUser';
-import { UserRepository } from '../repositories/UserRepository';
 import { authMiddleware } from '../../application/middlewares/authMiddleware';
-import { initializeDatabase } from '../db/database';
 import { errorHandler } from '../../application/middlewares/errorHandler';
+import { container, setupContainer } from '../container';
+import { AuthController } from '../../application/controllers/AuthController';
 
 export async function createServer() {
-    const app = express();
-    const connection = await initializeDatabase();
-    const userRepository = new UserRepository(connection);
+    await setupContainer();
 
-    const authenticateUser = new AuthenticateUser(
-        userRepository,
-    );
-    const registerUser = new RegisterUser(userRepository);
-    const authController = new AuthController(
-        authenticateUser,
-        registerUser,
-    );
+    const app = express();
+
+    const authController =
+        container.get<AuthController>(AuthController);
 
     app.use(cors());
     app.use(express.json());

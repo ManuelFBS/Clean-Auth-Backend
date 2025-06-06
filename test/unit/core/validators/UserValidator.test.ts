@@ -1,6 +1,5 @@
 import { UserValidator } from '../../../../src/core/validators/UserValidator';
 import { ValidationError } from '../../../../src/core/errors';
-import { User } from '../../../../src/core/entities/User';
 
 describe('UserValidator', () => {
     //* Test 'validateUsername'...

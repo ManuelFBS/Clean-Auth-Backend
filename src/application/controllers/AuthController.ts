@@ -1,12 +1,14 @@
 import { Request, Response } from 'express';
+import { injectable, inject } from 'inversify';
 import { AuthenticateUser } from '../../core/usecases/AuthenticateUser';
 import { RegisterUser } from '../../core/usecases/RegisterUser';
 import { LoginDTO, RegisterDTO } from '../dtos/AuthDTO';
 
+@injectable()
 export class AuthController {
     constructor(
-        private authenticateUser: AuthenticateUser,
-        private registerUser: RegisterUser,
+        @inject(AuthenticateUser) private authenticateUser: AuthenticateUser,
+        @inject(RegisterUser) private registerUser: RegisterUser,
     ) {}
 
     async login(req: Request, res: Response) {
