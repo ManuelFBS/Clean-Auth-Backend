@@ -1,9 +1,9 @@
-import { ValidatorError } from '../errors';
+import { ValidationError } from '../errors';
 
 export class UserValidator {
     static validateUsername(username: string): void {
         if (!username)
-            throw new ValidatorError(
+            throw new ValidationError(
                 'Username is required',
             );
 
@@ -30,6 +30,11 @@ export class UserValidator {
         if (password.length < 8)
             throw new Error(
                 'Password must be at least 8 characters',
+            );
+
+        if (password.length > 15)
+            throw new Error(
+                'The password must be a maximum of 15 characters.',
             );
 
         if (!/[A-Z]/.test(password))

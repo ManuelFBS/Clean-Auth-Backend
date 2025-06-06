@@ -9,7 +9,7 @@ export class ApplicationError extends Error {
     }
 }
 
-export class ValidatorError extends ApplicationError {
+export class ValidationError extends ApplicationError {
     constructor(message: string) {
         super(message, 'VALIDATION_ERROR', 400);
     }
