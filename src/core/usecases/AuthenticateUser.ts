@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { IUserRepository } from '../interfaces/IUserRepository';
 import { User } from '../entities/User';
+import { AuthenticationError } from '../errors';
 
 export class AuthenticateUser {
     constructor(private userRepository: IUserRepository) {}
@@ -16,7 +17,9 @@ export class AuthenticateUser {
             );
 
         if (!user) {
-            throw new Error('User not found');
+            throw new AuthenticationError(
+                'User not found...!',
+            );
         }
 
         const isPasswordValid = await bcrypt.compare(
@@ -25,7 +28,7 @@ export class AuthenticateUser {
         );
 
         if (!isPasswordValid) {
-            throw new Error('Invalid password');
+            throw new Error('Invalid password...!');
         }
 
         const token = jwt.sign(
