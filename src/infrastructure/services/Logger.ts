@@ -16,5 +16,24 @@ export const logger = winston.createLogger({
         timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
         logFormat,
     ),
-    transports: [new winston.transports.Console()],
+    transports: [
+        new winston.transports.Console(),
+        new winston.transports.File({
+            filename: 'logs/error.log',
+            level: 'error',
+        }),
+        new winston.transports.File({
+            filename: 'logs/combined.log',
+        }),
+    ],
 });
+
+//~ Para desarrollo, mostramos logs más detallados...
+if (process.env.NODE_ENV !== 'production') {
+    logger.add(
+        new winston.transports.Console({
+            level: 'debug',
+            format: winston.format.simple(),
+        }),
+    );
+}

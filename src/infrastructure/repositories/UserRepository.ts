@@ -2,6 +2,8 @@ import mysql from 'mysql2/promise';
 import { User } from '../../core/entities/User';
 import { IUserRepository } from '../../core/interfaces/IUserRepository';
 import bcrypt from 'bcrypt';
+import { logger } from '../services/Logger';
+import { DatabaseError } from '../../core/errors';
 
 export class UserRepository implements IUserRepository {
     private connection: mysql.Connection;
@@ -14,6 +16,8 @@ export class UserRepository implements IUserRepository {
         username: string,
     ): Promise<User | null> {
         try {
+            logger.debug(`Buscando usuario: ${username}`);
+
             const [rows]: any =
                 await this.connection.execute(
                     'SELECT * FROM users WHERE username = ?',
@@ -21,10 +25,16 @@ export class UserRepository implements IUserRepository {
                 );
 
             if (rows.length === 0) {
+                logger.debug(
+                    `Usuario no encontrado: ${username}`,
+                );
                 return null;
             }
 
+            logger.debug(`Usuario encontrado: ${username}`);
+
             const userData = rows[0];
+
             return new User(
                 userData.id,
                 userData.username,
@@ -33,12 +43,11 @@ export class UserRepository implements IUserRepository {
                 new Date(userData.updated_at),
             );
         } catch (error) {
-            console.error(
-                'Error in findByUsername:',
-                error,
+            logger.error(
+                `Error al buscar usuario: ${username}`,
             );
-            throw new Error(
-                'Database error when finding user',
+            throw new DatabaseError(
+                'Error al buscar usuario...!',
             );
         }
     }
