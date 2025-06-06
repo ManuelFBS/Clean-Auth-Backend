@@ -6,6 +6,7 @@ import { RegisterUser } from '../../core/usecases/RegisterUser';
 import { UserRepository } from '../repositories/UserRepository';
 import { authMiddleware } from '../../application/middlewares/authMiddleware';
 import { initializeDatabase } from '../db/database';
+import { errorHandler } from '../../application/middlewares/errorHandler';
 
 export async function createServer() {
     const app = express();
@@ -55,6 +56,8 @@ export async function createServer() {
             });
         }),
     );
+
+    app.use(asyncHandler(errorHandler));
 
     return app;
 }
