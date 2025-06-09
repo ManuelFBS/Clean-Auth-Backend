@@ -16,7 +16,7 @@
         "url": "git+https://github.com/ManuelFBS/Clean-Auth-Backend.git"
     },
     "keywords": [],
-    "author": "",
+    "author": "Manuel F. Borrego Sterling",
     "license": "ISC",
     "bugs": {
         "url": "https://github.com/ManuelFBS/Clean-Auth-Backend/issues"
@@ -27,6 +27,7 @@
         "cors": "^2.8.5",
         "dotenv": "^16.5.0",
         "express": "^5.1.0",
+        "express-rate-limit": "^7.5.0",
         "inversify": "^7.5.2",
         "jsonwebtoken": "^9.0.2",
         "mysql2": "^3.14.1",
@@ -37,6 +38,7 @@
         "@types/bcrypt": "^5.0.2",
         "@types/cors": "^2.8.18",
         "@types/express": "^5.0.2",
+        "@types/express-rate-limit": "^5.1.3",
         "@types/jest": "^29.5.14",
         "@types/jsonwebtoken": "^9.0.9",
         "@types/node": "^22.15.29",

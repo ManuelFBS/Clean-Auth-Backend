@@ -8,18 +8,14 @@ import { DatabaseError } from '../../core/errors';
 export class EmployeeRepository
     implements IEmployeeRepository
 {
-    constructor(private connection: mysql.Pool) {}
+    constructor(private connection: mysql.Connection) {}
 
     async save(employee: Employee): Promise<Employee> {
-        let connection: mysql.PoolConnection | null = null;
-
         try {
-            connection =
-                await this.connection.getConnection();
-            await connection.beginTransaction();
+            await this.connection.beginTransaction();
 
             const [result]: [mysql.ResultSetHeader, any] =
-                await connection.execute(
+                await this.connection.execute(
                     `INSERT INTO employees 
                         (dni, name, last_name, email, phone, role) 
                     VALUES (?, ?, ?, ?, ?, ?)`,
@@ -42,7 +38,7 @@ export class EmployeeRepository
 
             //* Obtener el empleado insertado...
             const [rows]: [any[], any] =
-                await connection.execute(
+                await this.connection.execute(
                     `SELECT * FROM employees WHERE id = ?`,
                     [result.insertId],
                 );
@@ -53,19 +49,15 @@ export class EmployeeRepository
                 );
             }
 
-            await connection.commit();
+            await this.connection.commit();
 
             return this.rowToEmployee(rows[0]);
         } catch (error) {
-            if (connection) {
-                await connection.rollback();
-            }
+            await this.connection.rollback();
             logger.error(`Error saving employee: ${error}`);
             throw new DatabaseError(
                 'Failed to save employee...!',
             );
-        } finally {
-            if (connection) connection.release();
         }
     }
 

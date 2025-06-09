@@ -1,4 +1,6 @@
 import { Container } from 'inversify';
+import { IEmployeeRepository } from '../core/interfaces/IEmployeeRepository';
+import { EmployeeRepository } from './repositories/EmployeeRepository';
 import { IUserRepository } from '../core/interfaces/IUserRepository';
 import { UserRepository } from './repositories/UserRepository';
 import { AuthenticateUser } from '../core/usecases/AuthenticateUser';
@@ -10,6 +12,13 @@ export const container = new Container();
 
 export async function setupContainer() {
     const connection = await createConnection();
+
+    container
+        .bind<IEmployeeRepository>('IEmployeeRepository')
+        .toDynamicValue(
+            () => new EmployeeRepository(connection),
+        )
+        .inRequestScope();
 
     container
         .bind<IUserRepository>('IUserRepository')

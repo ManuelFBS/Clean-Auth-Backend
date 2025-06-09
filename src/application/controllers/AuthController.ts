@@ -7,8 +7,10 @@ import { LoginDTO, RegisterDTO } from '../dtos/AuthDTO';
 @injectable()
 export class AuthController {
     constructor(
-        @inject(AuthenticateUser) private authenticateUser: AuthenticateUser,
-        @inject(RegisterUser) private registerUser: RegisterUser,
+        @inject(AuthenticateUser)
+        private authenticateUser: AuthenticateUser,
+        @inject(RegisterUser)
+        private registerUser: RegisterUser,
     ) {}
 
     async login(req: Request, res: Response) {
