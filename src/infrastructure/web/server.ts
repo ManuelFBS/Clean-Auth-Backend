@@ -5,6 +5,8 @@ import { authMiddleware } from '../../application/middlewares/authMiddleware';
 import { errorHandler } from '../../application/middlewares/errorHandler';
 import { container, setupContainer } from '../container';
 import { AuthController } from '../../application/controllers/AuthController';
+import { EmployeeRole } from '../../core/entities/Role';
+import { authorize } from '../../application/middlewares/authorize';
 
 export async function createServer() {
     await setupContainer();
@@ -22,6 +24,13 @@ export async function createServer() {
         (fn: any) => (req: any, res: any, next: any) => {
             Promise.resolve(fn(req, res, next)).catch(next);
         };
+
+    //* Rutas protegidas...
+    app.get(
+        '/admin',
+        asyncHandler(authMiddleware),
+        authorize([EmployeeRole.ADMIN]),
+    );
 
     //* Rutas públicas...
     app.post(

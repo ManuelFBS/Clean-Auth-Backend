@@ -23,6 +23,7 @@
     },
     "homepage": "https://github.com/ManuelFBS/Clean-Auth-Backend#readme",
     "dependencies": {
+        "@types/uuid": "^10.0.0",
         "bcrypt": "^6.0.0",
         "cors": "^2.8.5",
         "dotenv": "^16.5.0",
@@ -31,7 +32,9 @@
         "inversify": "^7.5.2",
         "jsonwebtoken": "^9.0.2",
         "mysql2": "^3.14.1",
+        "nodemailer": "^7.0.3",
         "reflect-metadata": "^0.2.2",
+        "uuid": "^11.1.0",
         "winston": "^3.17.0"
     },
     "devDependencies": {
@@ -42,6 +45,7 @@
         "@types/jest": "^29.5.14",
         "@types/jsonwebtoken": "^9.0.9",
         "@types/node": "^22.15.29",
+        "@types/nodemailer": "^6.4.17",
         "@types/supertest": "^6.0.3",
         "@types/winston": "^2.4.4",
         "jest": "^29.7.0",

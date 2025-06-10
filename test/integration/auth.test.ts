@@ -1,16 +1,42 @@
 import request from 'supertest';
 import { createServer } from '../../src/infrastructure/web/server';
 import { initializeDatabase } from '../../src/infrastructure/db/database';
-import { UserRepository } from '../../src/infrastructure/repositories/UserRepository';
 import { Application } from 'express';
+import { User } from '../../src/core/entities/User';
+import {
+    container,
+    setupContainer,
+} from '../../src/infrastructure/container';
+import { UserRepository } from '../../src/infrastructure/repositories/UserRepository';
 
 describe('Auth API', () => {
     let app: Application;
     let connection: any;
+    let userRepository: UserRepository;
+    let testUser: User;
 
     beforeAll(async () => {
         connection = await initializeDatabase();
+        await setupContainer();
         app = await createServer();
+        userRepository = container.get<UserRepository>(
+            'IUserRepository',
+        );
+
+        //* Crear un usuario de prueba
+        testUser = await userRepository.save(
+            new User(
+                0,
+                'testuser',
+                '$2b$10$EXAMPLEHASHEDPASSWORD', //> bcrypt hash de "testpass"
+                'test@example.com',
+                true,
+                null,
+                new Date(),
+                new Date(),
+                [],
+            ),
+        );
     });
 
     afterAll(async () => {
@@ -19,14 +45,13 @@ describe('Auth API', () => {
 
     describe('POST /register', () => {
         it('should register a new user', async () => {
-            // Use a unique username to avoid conflicts with previous test runs
             const uniqueUsername = `testuser_${Date.now()}`;
-            
             const response = await request(app)
                 .post('/register')
                 .send({
                     username: uniqueUsername,
                     password: 'ValidPass123',
+                    email: `${uniqueUsername}@example.com`,
                 });
 
             expect(response.status).toBe(201);
@@ -38,7 +63,109 @@ describe('Auth API', () => {
                 'password',
             );
         });
+
+        it('should fail with invalid email', async () => {
+            const response = await request(app)
+                .post('/register')
+                .send({
+                    username: 'invaliduser',
+                    password: 'ValidPass123',
+                    email: 'invalid-email',
+                });
+
+            expect(response.status).toBe(400);
+            expect(response.body.error.message).toContain(
+                'Invalid email format',
+            );
+        });
     });
 
-    //! Más tests para login, etc...
+    describe('POST /login', () => {
+        it('should login with valid credentials', async () => {
+            const response = await request(app)
+                .post('/login')
+                .send({
+                    username: 'testuser',
+                    password: 'testpass',
+                });
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty('token');
+            expect(response.body.user.username).toBe(
+                'testuser',
+            );
+        });
+
+        it('should fail with invalid password', async () => {
+            const response = await request(app)
+                .post('/login')
+                .send({
+                    username: 'testuser',
+                    password: 'wrongpassword',
+                });
+
+            expect(response.status).toBe(401);
+            expect(response.body.error.message).toContain(
+                'Invalid password',
+            );
+        });
+
+        it('should fail with non-existent user', async () => {
+            const response = await request(app)
+                .post('/login')
+                .send({
+                    username: 'nonexistent',
+                    password: 'somepass',
+                });
+
+            expect(response.status).toBe(401);
+            expect(response.body.error.message).toContain(
+                'User not found',
+            );
+        });
+    });
+
+    describe('GET /profile', () => {
+        let authToken: string;
+
+        beforeAll(async () => {
+            const loginResponse = await request(app)
+                .post('/login')
+                .send({
+                    username: 'testuser',
+                    password: 'testpass',
+                });
+            authToken = loginResponse.body.token;
+        });
+
+        it('should return user profile with valid token', async () => {
+            const response = await request(app)
+                .get('/profile')
+                .set(
+                    'Authorization',
+                    `Bearer ${authToken}`,
+                );
+
+            expect(response.status).toBe(200);
+            expect(response.body.userId).toBe(testUser.id);
+        });
+
+        it('should fail without token', async () => {
+            const response =
+                await request(app).get('/profile');
+
+            expect(response.status).toBe(401);
+        });
+
+        it('should fail with invalid token', async () => {
+            const response = await request(app)
+                .get('/profile')
+                .set(
+                    'Authorization',
+                    'Bearer invalidtoken',
+                );
+
+            expect(response.status).toBe(401);
+        });
+    });
 });

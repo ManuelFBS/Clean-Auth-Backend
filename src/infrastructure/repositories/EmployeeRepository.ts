@@ -12,9 +12,7 @@ export class EmployeeRepository
 
     async save(employee: Employee): Promise<Employee> {
         try {
-            await this.connection.beginTransaction();
-
-            const [result]: [mysql.ResultSetHeader, any] =
+            const [result]: any =
                 await this.connection.execute(
                     `INSERT INTO employees 
                         (dni, name, last_name, email, phone, role) 
@@ -29,29 +27,18 @@ export class EmployeeRepository
                     ],
                 );
 
-            //* Verificar que se insertó correctamente...
-            if (result.affectedRows !== 1) {
-                throw new DatabaseError(
-                    'Employee not created',
-                );
-            }
+            //* Obtenemos el empleado recién creado...
+            const savedEmployee = await this.findById(
+                result.insertId,
+            );
 
-            //* Obtener el empleado insertado...
-            const [rows]: [any[], any] =
-                await this.connection.execute(
-                    `SELECT * FROM employees WHERE id = ?`,
-                    [result.insertId],
-                );
-
-            if (rows.length === 0) {
+            if (!savedEmployee) {
                 throw new DatabaseError(
                     'Failed to retrieve created employee',
                 );
             }
 
-            await this.connection.commit();
-
-            return this.rowToEmployee(rows[0]);
+            return savedEmployee;
         } catch (error) {
             await this.connection.rollback();
             logger.error(`Error saving employee: ${error}`);
@@ -123,11 +110,13 @@ export class EmployeeRepository
             const updatedEmployee = await this.findById(
                 employee.id,
             );
+
             if (!updatedEmployee) {
                 throw new DatabaseError(
                     'Employee not found after update',
                 );
             }
+
             return updatedEmployee;
         } catch (error) {
             logger.error(

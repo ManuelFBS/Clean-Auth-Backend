@@ -4,6 +4,7 @@ import { EmployeeRepository } from './repositories/EmployeeRepository';
 import { IUserRepository } from '../core/interfaces/IUserRepository';
 import { UserRepository } from './repositories/UserRepository';
 import { AuthenticateUser } from '../core/usecases/AuthenticateUser';
+import { EmailService } from './services/EmailService';
 import { RegisterUser } from '../core/usecases/RegisterUser';
 import { AuthController } from '../application/controllers/AuthController';
 import { createConnection } from './db/database';
@@ -26,6 +27,12 @@ export async function setupContainer() {
             () => new UserRepository(connection),
         )
         .inRequestScope();
+
+    // Registrar servicios
+    container
+        .bind<EmailService>('EmailService')
+        .to(EmailService)
+        .inSingletonScope();
 
     container
         .bind<AuthenticateUser>(AuthenticateUser)

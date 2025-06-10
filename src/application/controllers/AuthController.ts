@@ -44,12 +44,15 @@ export class AuthController {
 
     async register(req: Request, res: Response) {
         try {
-            const { username, password }: RegisterDTO =
-                req.body;
+            const {
+                username,
+                password,
+                email,
+            }: RegisterDTO = req.body;
 
-            if (!username || !password) {
+            if (!username || !password || !email) {
                 return res.status(400).json({
-                    error: 'Username and password are required',
+                    error: 'Username, Password and Email are required',
                 });
             }
 
@@ -62,6 +65,7 @@ export class AuthController {
             const user = await this.registerUser.execute(
                 username,
                 password,
+                email,
             );
 
             return res.status(201).json(user.toJSON());

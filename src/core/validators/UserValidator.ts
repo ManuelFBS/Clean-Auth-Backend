@@ -1,4 +1,5 @@
 import { ValidationError } from '../errors';
+import { EmployeeRole } from '../entities/Role';
 
 export class UserValidator {
     static validateUsername(username: string): void {
@@ -25,7 +26,9 @@ export class UserValidator {
 
     static validatePassword(password: string): void {
         if (!password)
-            throw new ValidationError('Password is required...!');
+            throw new ValidationError(
+                'Password is required...!',
+            );
 
         if (password.length < 8)
             throw new ValidationError(
@@ -51,5 +54,25 @@ export class UserValidator {
             throw new ValidationError(
                 'Password must contain at least one number',
             );
+    }
+
+    static validateEmail(email: string): void {
+        if (!email)
+            throw new ValidationError(
+                'Email is required...!',
+            );
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            throw new ValidationError(
+                'Invalid email format...!',
+            );
+        }
+    }
+
+    static validateRole(role: string): void {
+        if (!EmployeeRole.isValid(role)) {
+            throw new ValidationError(
+                `Invalid role. Valid roles are: ${EmployeeRole.getAll().join(', ')}`,
+            );
+        }
     }
 }
