@@ -1,6 +1,9 @@
 import request from 'supertest';
 import { createServer } from '../../src/infrastructure/web/server';
-import { initializeDatabase } from '../../src/infrastructure/db/database';
+import {
+    initializeDatabase,
+    createConnection,
+} from '../../src/infrastructure/db/database';
 import { Application } from 'express';
 import { User } from '../../src/core/entities/User';
 import {
@@ -9,46 +12,67 @@ import {
 } from '../../src/infrastructure/container';
 import { UserRepository } from '../../src/infrastructure/repositories/UserRepository';
 import { injectable } from 'inversify';
+import { Connection } from 'mysql2/promise';
 
-// Mock EmailService for tests
+//* Mock EmailService for tests...
 @injectable()
 class MockEmailService {
-    async sendVerificationEmail(email: string, token: string): Promise<void> {
-        // Mock implementation - do nothing
-        console.log(`Mock: Would send verification email to ${email} with token ${token}`);
+    async sendVerificationEmail(
+        email: string,
+        token: string,
+    ): Promise<void> {
+        //> Mock implementation - do nothing...
+        console.log(
+            `Mock: Would send verification email to ${email} with token ${token}`,
+        );
         return Promise.resolve();
     }
 }
 
 describe('Auth API', () => {
     let app: Application;
-    let connection: any;
+    let connection: Connection;
+    let containerConnection: Connection;
     let userRepository: UserRepository;
     let testUser: User;
 
     beforeAll(async () => {
-        // Clear container to avoid duplicate bindings
+        //> Clear container to avoid duplicate bindings...
         container.unbindAll();
-        
+
+        //> Initialize test database...
         connection = await initializeDatabase();
-        await setupContainer();
-        
-        // Override EmailService with mock for tests
+
+        //> Create a separate connection for container services...
+        containerConnection = await createConnection();
+
+        //> Setup container with our controlled connection...
+        await setupContainerWithConnection(
+            containerConnection,
+        );
+
+        //> Override EmailService with mock for tests...
         if (container.isBound('EmailService')) {
             container.unbind('EmailService');
         }
-        container.bind('EmailService').to(MockEmailService).inSingletonScope();
-        
-        app = await createServer();
+        container
+            .bind('EmailService')
+            .to(MockEmailService)
+            .inSingletonScope();
+
+        app = await createServerWithoutSetup();
         userRepository = container.get<UserRepository>(
             'IUserRepository',
         );
 
-        // Clean up any existing test users
+        //> Clean up any existing test users...
         try {
-            await connection.execute('DELETE FROM users WHERE username = ?', ['testuser']);
+            await connection.execute(
+                'DELETE FROM users WHERE username = ?',
+                ['testuser'],
+            );
         } catch (error) {
-            // User might not exist, that's okay
+            //> User might not exist, that's okay...
         }
 
         //* Crear un usuario de prueba
@@ -68,13 +92,23 @@ describe('Auth API', () => {
     });
 
     afterAll(async () => {
-        // Close the test database connection
+        //> Close the test database connection...
         if (connection) {
             await connection.end();
         }
-        
-        // Clear the container to release all bindings
+
+        //> Close the container database connection...
+        if (containerConnection) {
+            await containerConnection.end();
+        }
+
+        //> Clear the container to release all bindings...
         container.unbindAll();
+
+        //> Force garbage collection to help Jest detect all handles are closed...
+        if (global.gc) {
+            global.gc();
+        }
     });
 
     describe('POST /register', () => {
@@ -88,7 +122,10 @@ describe('Auth API', () => {
                     email: `${uniqueUsername}@example.com`,
                 });
 
-            console.log('Register response:', response.body);
+            console.log(
+                'Register response:',
+                response.body,
+            );
             expect(response.status).toBe(201);
             expect(response.body).toHaveProperty(
                 'username',
@@ -108,7 +145,10 @@ describe('Auth API', () => {
                     email: 'invalid-email',
                 });
 
-            console.log('Invalid email response:', response.body);
+            console.log(
+                'Invalid email response:',
+                response.body,
+            );
             expect(response.status).toBe(400);
             expect(response.body.error).toContain(
                 'Invalid email format',
@@ -140,7 +180,10 @@ describe('Auth API', () => {
                     password: 'wrongpassword',
                 });
 
-            console.log('Invalid password response:', response.body);
+            console.log(
+                'Invalid password response:',
+                response.body,
+            );
             expect(response.status).toBe(401);
             expect(response.body.error).toContain(
                 'Invalid password',
@@ -155,7 +198,10 @@ describe('Auth API', () => {
                     password: 'somepass',
                 });
 
-            console.log('Non-existent user response:', response.body);
+            console.log(
+                'Non-existent user response:',
+                response.body,
+            );
             expect(response.status).toBe(401);
             expect(response.body.error).toContain(
                 'User not found',
@@ -207,3 +253,120 @@ describe('Auth API', () => {
         });
     });
 });
+
+//~ Helper functions for better connection management...
+async function setupContainerWithConnection(
+    conn: Connection,
+) {
+    if (!container.isBound('IEmployeeRepository')) {
+        container
+            .bind('IEmployeeRepository')
+            .toDynamicValue(
+                () =>
+                    new (require('../../src/infrastructure/repositories/EmployeeRepository').EmployeeRepository)(
+                        conn,
+                    ),
+            )
+            .inRequestScope();
+    }
+
+    if (!container.isBound('IUserRepository')) {
+        container
+            .bind('IUserRepository')
+            .toDynamicValue(() => new UserRepository(conn))
+            .inRequestScope();
+    }
+
+    const {
+        AuthenticateUser,
+    } = require('../../src/core/usecases/AuthenticateUser');
+    const {
+        RegisterUser,
+    } = require('../../src/core/usecases/RegisterUser');
+    const {
+        AuthController,
+    } = require('../../src/application/controllers/AuthController');
+
+    if (!container.isBound(AuthenticateUser)) {
+        container
+            .bind(AuthenticateUser)
+            .toSelf()
+            .inRequestScope();
+    }
+
+    if (!container.isBound(RegisterUser)) {
+        container
+            .bind(RegisterUser)
+            .toSelf()
+            .inRequestScope();
+    }
+
+    if (!container.isBound(AuthController)) {
+        container
+            .bind(AuthController)
+            .toSelf()
+            .inRequestScope();
+    }
+}
+
+async function createServerWithoutSetup() {
+    const express = require('express');
+    const cors = require('cors');
+    const {
+        authMiddleware,
+    } = require('../../src/application/middlewares/authMiddleware');
+    const {
+        errorHandler,
+    } = require('../../src/application/middlewares/errorHandler');
+    const {
+        AuthController,
+    } = require('../../src/application/controllers/AuthController');
+    const {
+        EmployeeRole,
+    } = require('../../src/core/entities/Role');
+    const {
+        authorize,
+    } = require('../../src/application/middlewares/authorize');
+
+    const app = express();
+    const authController =
+        container.get<any>(AuthController);
+
+    app.use(cors());
+    app.use(express.json());
+
+    const asyncHandler =
+        (fn: any) => (req: any, res: any, next: any) => {
+            Promise.resolve(fn(req, res, next)).catch(next);
+        };
+
+    app.get(
+        '/admin',
+        asyncHandler(authMiddleware),
+        authorize([EmployeeRole.ADMIN]),
+    );
+    app.post(
+        '/register',
+        asyncHandler((req: any, res: any) =>
+            authController.register(req, res),
+        ),
+    );
+    app.post(
+        '/login',
+        asyncHandler((req: any, res: any) =>
+            authController.login(req, res),
+        ),
+    );
+    app.get(
+        '/profile',
+        asyncHandler(authMiddleware),
+        asyncHandler((req: any, res: any) => {
+            return res.json({
+                userId: (req as any).userId,
+            });
+        }),
+    );
+    app.use(asyncHandler(errorHandler));
+
+    return app;
+}

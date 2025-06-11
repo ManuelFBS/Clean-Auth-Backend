@@ -12,3 +12,6 @@ export const collectCoverageFrom = [
     '!src/index.ts',
     '!src/infrastructure/web/server.ts',
 ];
+export const testTimeout = 30000; // 30 seconds timeout
+export const forceExit = true; // Force Jest to exit after all tests complete
+export const detectOpenHandles = true; // Help detect open handles
