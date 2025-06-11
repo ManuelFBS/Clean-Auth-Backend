@@ -16,19 +16,25 @@ export async function setupContainer() {
 
     if (!container.isBound('IEmployeeRepository')) {
         container
-            .bind<IEmployeeRepository>('IEmployeeRepository')
-            .toDynamicValue(() => new EmployeeRepository(connection))
+            .bind<IEmployeeRepository>(
+                'IEmployeeRepository',
+            )
+            .toDynamicValue(
+                () => new EmployeeRepository(connection),
+            )
             .inRequestScope();
     }
 
     if (!container.isBound('IUserRepository')) {
         container
             .bind<IUserRepository>('IUserRepository')
-            .toDynamicValue(() => new UserRepository(connection))
+            .toDynamicValue(
+                () => new UserRepository(connection),
+            )
             .inRequestScope();
     }
 
-    // Registrar servicios
+    //* Registrar servicios...
     if (!container.isBound('EmailService')) {
         container
             .bind<EmailService>('EmailService')
