@@ -12,5 +12,5 @@ node_modules
 
 # Tests
 logs
-test
-jest.config.js
+# test
+# jest.config.js
