@@ -14,38 +14,46 @@ export const container = new Container();
 export async function setupContainer() {
     const connection = await createConnection();
 
-    container
-        .bind<IEmployeeRepository>('IEmployeeRepository')
-        .toDynamicValue(
-            () => new EmployeeRepository(connection),
-        )
-        .inRequestScope();
+    if (!container.isBound('IEmployeeRepository')) {
+        container
+            .bind<IEmployeeRepository>('IEmployeeRepository')
+            .toDynamicValue(() => new EmployeeRepository(connection))
+            .inRequestScope();
+    }
 
-    container
-        .bind<IUserRepository>('IUserRepository')
-        .toDynamicValue(
-            () => new UserRepository(connection),
-        )
-        .inRequestScope();
+    if (!container.isBound('IUserRepository')) {
+        container
+            .bind<IUserRepository>('IUserRepository')
+            .toDynamicValue(() => new UserRepository(connection))
+            .inRequestScope();
+    }
 
     // Registrar servicios
-    container
-        .bind<EmailService>('EmailService')
-        .to(EmailService)
-        .inSingletonScope();
+    if (!container.isBound('EmailService')) {
+        container
+            .bind<EmailService>('EmailService')
+            .to(EmailService)
+            .inSingletonScope();
+    }
 
-    container
-        .bind<AuthenticateUser>(AuthenticateUser)
-        .toSelf()
-        .inRequestScope();
+    if (!container.isBound(AuthenticateUser)) {
+        container
+            .bind<AuthenticateUser>(AuthenticateUser)
+            .toSelf()
+            .inRequestScope();
+    }
 
-    container
-        .bind<RegisterUser>(RegisterUser)
-        .toSelf()
-        .inRequestScope();
+    if (!container.isBound(RegisterUser)) {
+        container
+            .bind<RegisterUser>(RegisterUser)
+            .toSelf()
+            .inRequestScope();
+    }
 
-    container
-        .bind<AuthController>(AuthController)
-        .toSelf()
-        .inRequestScope();
+    if (!container.isBound(AuthController)) {
+        container
+            .bind<AuthController>(AuthController)
+            .toSelf()
+            .inRequestScope();
+    }
 }

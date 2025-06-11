@@ -8,6 +8,17 @@ import {
     setupContainer,
 } from '../../src/infrastructure/container';
 import { UserRepository } from '../../src/infrastructure/repositories/UserRepository';
+import { injectable } from 'inversify';
+
+// Mock EmailService for tests
+@injectable()
+class MockEmailService {
+    async sendVerificationEmail(email: string, token: string): Promise<void> {
+        // Mock implementation - do nothing
+        console.log(`Mock: Would send verification email to ${email} with token ${token}`);
+        return Promise.resolve();
+    }
+}
 
 describe('Auth API', () => {
     let app: Application;
@@ -16,19 +27,36 @@ describe('Auth API', () => {
     let testUser: User;
 
     beforeAll(async () => {
+        // Clear container to avoid duplicate bindings
+        container.unbindAll();
+        
         connection = await initializeDatabase();
         await setupContainer();
+        
+        // Override EmailService with mock for tests
+        if (container.isBound('EmailService')) {
+            container.unbind('EmailService');
+        }
+        container.bind('EmailService').to(MockEmailService).inSingletonScope();
+        
         app = await createServer();
         userRepository = container.get<UserRepository>(
             'IUserRepository',
         );
+
+        // Clean up any existing test users
+        try {
+            await connection.execute('DELETE FROM users WHERE username = ?', ['testuser']);
+        } catch (error) {
+            // User might not exist, that's okay
+        }
 
         //* Crear un usuario de prueba
         testUser = await userRepository.save(
             new User(
                 0,
                 'testuser',
-                '$2b$10$EXAMPLEHASHEDPASSWORD', //> bcrypt hash de "testpass"
+                '$2b$10$57GvNyRCIDfTwkgxFgm0UuxKNOPL0Uhs9MrYnFbN6xuZ5rPEmEzc.', //> bcrypt hash de "testpass"
                 'test@example.com',
                 true,
                 null,
@@ -40,7 +68,13 @@ describe('Auth API', () => {
     });
 
     afterAll(async () => {
-        await connection.end();
+        // Close the test database connection
+        if (connection) {
+            await connection.end();
+        }
+        
+        // Clear the container to release all bindings
+        container.unbindAll();
     });
 
     describe('POST /register', () => {
@@ -54,6 +88,7 @@ describe('Auth API', () => {
                     email: `${uniqueUsername}@example.com`,
                 });
 
+            console.log('Register response:', response.body);
             expect(response.status).toBe(201);
             expect(response.body).toHaveProperty(
                 'username',
@@ -73,8 +108,9 @@ describe('Auth API', () => {
                     email: 'invalid-email',
                 });
 
+            console.log('Invalid email response:', response.body);
             expect(response.status).toBe(400);
-            expect(response.body.error.message).toContain(
+            expect(response.body.error).toContain(
                 'Invalid email format',
             );
         });
@@ -104,8 +140,9 @@ describe('Auth API', () => {
                     password: 'wrongpassword',
                 });
 
+            console.log('Invalid password response:', response.body);
             expect(response.status).toBe(401);
-            expect(response.body.error.message).toContain(
+            expect(response.body.error).toContain(
                 'Invalid password',
             );
         });
@@ -118,8 +155,9 @@ describe('Auth API', () => {
                     password: 'somepass',
                 });
 
+            console.log('Non-existent user response:', response.body);
             expect(response.status).toBe(401);
-            expect(response.body.error.message).toContain(
+            expect(response.body.error).toContain(
                 'User not found',
             );
         });

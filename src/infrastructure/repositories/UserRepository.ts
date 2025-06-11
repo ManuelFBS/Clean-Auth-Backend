@@ -103,8 +103,8 @@ export class UserRepository implements IUserRepository {
         try {
             const [result]: any =
                 await this.connection.execute(
-                    'INSERT INTO users (username, password) VALUES (?, ?)',
-                    [user.username, user.password],
+                    'INSERT INTO users (username, password, email, isVerify, verificationToken, roles) VALUES (?, ?, ?, ?, ?, ?)',
+                    [user.username, user.password, user.email, user.isVerified, user.verificationToken, JSON.stringify(user.roles)],
                 );
 
             // Obtener el usuario recién creado para devolverlo con todos los datos
