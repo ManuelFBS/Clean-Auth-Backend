@@ -47,5 +47,7 @@ describe('Employee Entity', () => {
         });
     });
 
-    describe('updateDetails()', () => {});
+    describe('updateDetails()', () => {
+        //
+    });
 });

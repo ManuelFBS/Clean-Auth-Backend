@@ -60,7 +60,6 @@ describe('User Entity', () => {
             user.addRole(EmployeeRole.ADMIN);
             expect(user.roles).toEqual([
                 EmployeeRole.EMPLOYEE,
-                EmployeeRole.MODERATOR,
                 EmployeeRole.ADMIN,
             ]);
         });
@@ -75,7 +74,7 @@ describe('User Entity', () => {
 
     describe('removeRole()', () => {
         it('should remove existing role', () => {
-            user.addRole(EmployeeRole.EMPLOYEE);
+            user.removeRole(EmployeeRole.EMPLOYEE);
             expect(user.roles).toEqual([]);
         });
 
