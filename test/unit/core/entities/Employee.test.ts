@@ -48,6 +48,34 @@ describe('Employee Entity', () => {
     });
 
     describe('updateDetails()', () => {
-        //
+        it('should update specified fields', () => {
+            const originalUpdatedAt = employee.updatedAt;
+
+            employee.updateDetails({
+                name: 'Jane',
+                phone: '987654321',
+                role: EmployeeRole.EMPLOYEE,
+            });
+
+            expect(employee.name).toBe('Jane');
+            expect(employee.phone).toBe('987654321');
+            expect(employee.role).toBe(
+                EmployeeRole.EMPLOYEE,
+            );
+            expect(employee.updatedAt).not.toBe(
+                originalUpdatedAt,
+            );
+        });
+
+        it('should not update unspecified fields', () => {
+            const originalEmail = employee.email;
+
+            employee.updateDetails({
+                name: 'Jane',
+            });
+
+            expect(employee.name).toBe('Jane');
+            expect(employee.email).toBe(originalEmail);
+        });
     });
 });
