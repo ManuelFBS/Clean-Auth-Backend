@@ -15,7 +15,7 @@ export class EmployeeRepository
             const [result]: any =
                 await this.connection.execute(
                     `INSERT INTO employees 
-                        (dni, name, last_name, email, phone, role) 
+                        (dni, name, lastName, email, phone, role) 
                     VALUES (?, ?, ?, ?, ?, ?)`,
                     [
                         employee.dni,
@@ -93,7 +93,7 @@ export class EmployeeRepository
         try {
             await this.connection.execute(
                 `UPDATE employees SET 
-        dni = ?, name = ?, last_name = ?, 
+        dni = ?, name = ?, lastName = ?, 
         email = ?, phone = ?, role = ?
         WHERE id = ?`,
                 [
@@ -254,12 +254,12 @@ export class EmployeeRepository
             row.id,
             row.dni,
             row.name,
-            row.last_name,
+            row.lastName,
             row.email,
             row.phone,
             row.role as EmployeeRole,
-            new Date(row.created_at),
-            new Date(row.updated_at),
+            new Date(row.createdAt),
+            new Date(row.updatedAt),
         );
     }
 }

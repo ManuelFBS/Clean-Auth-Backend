@@ -15,8 +15,9 @@ export async function createConnection() {
 export async function initializeDatabase() {
     const connection = await createConnection();
 
-    // Drop table if it exists and recreate with proper schema
+    // Drop tables if they exist and recreate with proper schema
     await connection.execute(`DROP TABLE IF EXISTS users`);
+    await connection.execute(`DROP TABLE IF EXISTS employees`);
     
     await connection.execute(`
         CREATE TABLE users (
@@ -29,6 +30,20 @@ export async function initializeDatabase() {
             roles JSON,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    `);
+
+    await connection.execute(`
+        CREATE TABLE employees (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            dni VARCHAR(30) NOT NULL UNIQUE,
+            name VARCHAR(100) NOT NULL,
+            lastName VARCHAR(100) NOT NULL,
+            email VARCHAR(255) NOT NULL UNIQUE,
+            phone VARCHAR(25),
+            role ENUM('ADMIN', 'EMPLOYEE', 'MODERATOR') NOT NULL DEFAULT 'EMPLOYEE',
+            createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )
     `);
 
