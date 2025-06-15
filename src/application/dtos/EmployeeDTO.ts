@@ -1,3 +1,5 @@
+import { EmployeeRole } from '../../core/entities/Role';
+
 export interface CreateEmployeeDTO {
     dni: string;
     name: string;
@@ -8,8 +10,9 @@ export interface CreateEmployeeDTO {
 }
 
 export interface UpdateEmployeeDTO
-    extends Partial<CreateEmployeeDTO> {
+    extends Partial<Omit<CreateEmployeeDTO, 'role'>> {
     id: number;
+    role?: EmployeeRole;
 }
 
 export interface EmployeeResponseDTO {
