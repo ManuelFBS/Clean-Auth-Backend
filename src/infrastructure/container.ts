@@ -8,6 +8,7 @@ import { GetEmployeeByDNI } from '../core/usecases/GetEmployeeByDNI';
 import { UpdateEmployee } from '../core/usecases/UpdateEmployee';
 import { DeleteEmployee } from '../core/usecases/DeleteEmployee';
 import { EmployeeController } from '../application/controllers/EmployeeController';
+import { EmployeeValidator } from '../core/validators/EmployeeValidator';
 import { IUserRepository } from '../core/interfaces/IUserRepository';
 import { UserRepository } from './repositories/UserRepository';
 import { AuthenticateUser } from '../core/usecases/AuthenticateUser';
@@ -21,6 +22,13 @@ export const container = new Container();
 export async function setupContainer() {
     const connection = await createConnection();
 
+    //* Se registra el validador...
+    container
+        .bind<EmployeeValidator>('EmployeeValidator')
+        .to(EmployeeValidator)
+        .inRequestScope();
+
+    //* Se registran casos de uso de Employee...
     container
         .bind<CreateEmployee>(CreateEmployee)
         .toSelf()
@@ -50,6 +58,15 @@ export async function setupContainer() {
         .toSelf()
         .inRequestScope();
 
+    //* Se registra el repositorio IEmployeeRepository...
+    container
+        .bind<IEmployeeRepository>('IEmployeeRepository')
+        .toDynamicValue(
+            () => new EmployeeRepository(connection),
+        )
+        .inRequestScope();
+
+    // **************************************** //
     if (!container.isBound('IEmployeeRepository')) {
         container
             .bind<IEmployeeRepository>(
