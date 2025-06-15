@@ -14,7 +14,6 @@ import { GetEmployeeByDNI } from '../../core/usecases/GetEmployeeByDNI';
 import { UpdateEmployee } from '../../core/usecases/UpdateEmployee';
 import { DeleteEmployee } from '../../core/usecases/DeleteEmployee';
 import { Employee } from '../../core/entities/Employee';
-import { error } from 'console';
 
 @injectable()
 export class EmployeeController {
