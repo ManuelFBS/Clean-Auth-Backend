@@ -1,6 +1,13 @@
 import { Container } from 'inversify';
 import { IEmployeeRepository } from '../core/interfaces/IEmployeeRepository';
 import { EmployeeRepository } from './repositories/EmployeeRepository';
+import { CreateEmployee } from '../core/usecases/CreateEmployee';
+import { GetAllEmployees } from '../core/usecases/GetAllEmployees';
+import { GetEmployeeById } from '../core/usecases/GetEmployeeById';
+import { GetEmployeeByDNI } from '../core/usecases/GetEmployeeByDNI';
+import { UpdateEmployee } from '../core/usecases/UpdateEmployee';
+import { DeleteEmployee } from '../core/usecases/DeleteEmployee';
+import { EmployeeController } from '../application/controllers/EmployeeController';
 import { IUserRepository } from '../core/interfaces/IUserRepository';
 import { UserRepository } from './repositories/UserRepository';
 import { AuthenticateUser } from '../core/usecases/AuthenticateUser';
@@ -13,6 +20,35 @@ export const container = new Container();
 
 export async function setupContainer() {
     const connection = await createConnection();
+
+    container
+        .bind<CreateEmployee>(CreateEmployee)
+        .toSelf()
+        .inRequestScope();
+    container
+        .bind<GetAllEmployees>(GetAllEmployees)
+        .toSelf()
+        .inRequestScope();
+    container
+        .bind<GetEmployeeById>(GetEmployeeById)
+        .toSelf()
+        .inRequestScope();
+    container
+        .bind<GetEmployeeByDNI>(GetEmployeeByDNI)
+        .toSelf()
+        .inRequestScope();
+    container
+        .bind<UpdateEmployee>(UpdateEmployee)
+        .toSelf()
+        .inRequestScope();
+    container
+        .bind<DeleteEmployee>(DeleteEmployee)
+        .toSelf()
+        .inRequestScope();
+    container
+        .bind<EmployeeController>(EmployeeController)
+        .toSelf()
+        .inRequestScope();
 
     if (!container.isBound('IEmployeeRepository')) {
         container
