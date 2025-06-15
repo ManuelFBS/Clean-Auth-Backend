@@ -7,6 +7,8 @@ import { container, setupContainer } from '../container';
 import { AuthController } from '../../application/controllers/AuthController';
 import { EmployeeRole } from '../../core/entities/Role';
 import { authorize } from '../../application/middlewares/authorize';
+import { EmployeeController } from '../../application/controllers/EmployeeController';
+import { configureEmployeeRoutes } from './routes/employees/employee.routes';
 
 export async function createServer() {
     await setupContainer();
@@ -56,6 +58,17 @@ export async function createServer() {
                 userId: (req as any).userId,
             });
         }),
+    );
+
+    //* Configurar rutas de empleados...
+    const employeeController =
+        container.get<EmployeeController>(
+            EmployeeController,
+        );
+
+    app.use(
+        '/api/employees',
+        configureEmployeeRoutes(employeeController),
     );
 
     app.use(asyncHandler(errorHandler));
