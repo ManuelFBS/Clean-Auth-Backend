@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 import { CreateEmployee } from '../../core/usecases/CreateEmployee';
-import { IEmployeeRepository } from '../../core/interfaces/IEmployeeRepository';
 import {
     CreateEmployeeDTO,
     EmployeeResponseDTO,
